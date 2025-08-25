@@ -1,0 +1,123 @@
+---
+- name: Comprehensive System Test Suite
+  hosts: all
+  gather_facts: true
+  vars_files:
+    - secrets.yml
+  tasks:
+    # Basic connectivity
+    - name: Test basic connectivity
+      ping:
+      tags: connectivity
+    
+    # System resources
+    - name: Check system resources
+      debug:
+        msg: |
+          CPU: {{ ansible_processor_vcpus }} cores
+          Memory: {{ (ansible_memtotal_mb/1024)|round(2) }} GB
+          Disk: {{ ansible_mounts[0].size_available | human_readable }} available
+      tags: resources
+    
+    # Services status
+    - name: Check critical services
+      service_facts:
+      tags: services
+    
+    - name: Display service status
+      debug:
+        msg: "{{ item }} is {{ ansible_facts.services[item].state | default('not found') }}"
+      loop:
+        - ssh
+        - systemd-resolved
+        - networkd-dispatcher
+      tags: services
+    
+    # Network tests
+    - name: Test ping to gateway
+      command: ping -c 3 {{ ansible_default_ipv4.gateway | default('8.8.8.8') }}
+      register: ping_gateway
+      changed_when: false
+      ignore_errors: true
+    
+    - name: Test DNS resolution
+      command: nslookup google.com
+      register: dns_test
+      changed_when: false
+      ignore_errors: true
+
+    - name: Test external connectivity
+      uri:
+        url: https://httpbin.org/get
+        method: GET
+        timeout: 10
+      register: external_test
+      ignore_errors: true
+      tags: network
+    
+    - name: Network test result
+      debug:
+        msg: "External connectivity: {{ 'OK' if external_test.status == 200 else 'FAILED' }}"
+      tags: network
+    
+    # Storage tests
+    - name: Check disk usage
+      command: df -h
+      register: disk_usage
+      changed_when: false
+      tags: storage
+    
+    - name: Display disk usage
+      debug:
+        var: disk_usage.stdout_lines
+      tags: storage
+    
+    # Performance test
+    - name: Quick CPU test
+      command: uptime
+      register: load_average
+      changed_when: false
+      tags: performance
+    
+    - name: Display load average
+      debug:
+        msg: "System load: {{ load_average.stdout }}"
+      tags: performance
+
+      #Reboot test
+    - name: Check if system needs reboot
+      stat:
+        path: /var/run/reboot-required
+      register: reboot_required
+    
+    - name: Reboot status
+      debug:
+        msg: "{{ 'System needs reboot' if reboot_required.stat.exists else 'No reboot required' }}"
+
+    #Updates
+    - name: Check for available updates (Ubuntu/Debian)
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      register: apt_updates
+      when: ansible_os_family == "Debian"
+      changed_when: false
+    
+    - name: List available updates
+      shell: apt list --upgradable 2>/dev/null | grep -v "WARNING"
+      register: upgradable_packages
+      when: ansible_os_family == "Debian"
+      changed_when: false
+      failed_when: false
+    
+    - name: Check SSH configuration
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: present
+      register: ssh_config
+      check_mode: yes
+      loop:
+        - { regexp: '^PasswordAuthentication', line: 'PasswordAuthentication no' }
+        - { regexp: '^PermitRootLogin', line: 'PermitRootLogin no' }

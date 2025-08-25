@@ -1,0 +1,58 @@
+---
+- name: Security Updates Only
+  hosts: all
+  gather_facts: true
+  become: yes
+  vars_files:
+    - secrets.yml
+  
+  tasks:
+    - name: Update package cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      when: ansible_os_family == "Debian"
+    
+    - name: Install unattended-upgrades if not present
+      apt:
+        name: unattended-upgrades
+        state: present
+      when: ansible_os_family == "Debian"
+    
+    - name: Run security updates only
+      apt:
+        upgrade: safe
+        update_cache: yes
+        cache_valid_time: 3600
+        only_upgrade: yes
+        install_recommends: no
+      register: security_updates
+      when: ansible_os_family == "Debian"
+    
+    - name: Install critical security patches
+      shell: |
+        apt-get -s dist-upgrade | grep "^Inst" | grep -i security | awk '{print $2}' | xargs apt-get install -y
+      register: critical_patches
+      when: ansible_os_family == "Debian"
+      changed_when: "'0 upgraded' not in critical_patches.stdout"
+    
+    - name: Check if reboot is required
+      stat:
+        path: /var/run/reboot-required
+      register: reboot_required
+    
+    - name: Display security update summary
+      debug:
+        msg: |
+          Security Update Summary for {{ inventory_hostname }}:
+          - Security updates applied: {{ 'Yes' if security_updates.changed else 'No' }}
+          - Critical patches applied: {{ 'Yes' if critical_patches.changed else 'No' }}
+          - Reboot required: {{ 'Yes' if reboot_required.stat.exists else 'No' }}
+    
+    - name: Log security update
+      lineinfile:
+        path: /var/log/ansible-security-updates.log
+        line: "{{ ansible_date_time.iso8601 }}: Security updates applied via Ansible"
+        create: yes
+        mode: '0644'
+      when: security_updates.changed or critical_patches.changed

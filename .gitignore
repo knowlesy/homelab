@@ -16,6 +16,10 @@ crash.*.log
 *.tfvars
 *.tfvars.json
 
+# Specifically exclude password files
+passwords.tfvars*
+secrets.tfvars*
+
 # Ignore override files as they are usually used to override resources locally and so
 # are not checked in
 override.tf
@@ -25,6 +29,7 @@ override.tf.json
 
 # Ignore transient lock info files created by terraform apply
 .terraform.tfstate.lock.info
+*.terraform.lock.hcl
 
 # Include override files you do wish to add to version control using negated pattern
 # !example_override.tf
@@ -35,3 +40,72 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+# Ansible-specific exclusions
+# =========================
+
+# Sensitive Files - NEVER commit these
+**/group_vars/*/vault*
+**/host_vars/*/vault*
+*.vault
+vault_pass*
+.vault_pass*
+*.pem
+*.key
+*.crt
+*.csr
+id_rsa*
+id_ed25519*
+secrets.yml
+secrets.yaml
+**/secrets/**
+.env
+.env.*
+
+# Ansible temporary and cache files
+*.retry
+.ansible/
+ansible.log
+*.log
+.ansible_cache/
+fact_cache/
+
+# Ansible Galaxy and Collections
+.galaxy_install_info
+roles/*/meta/.galaxy_install_info
+ansible_collections/
+collections/
+
+# Development files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+PLAYBOOK-INDEX.md
+
+# Python (for Ansible)
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+*.egg-info/
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Backup and temporary files
+*.bak
+*.backup
+*.orig
+*.tmp
+
+# Molecule testing
+.molecule/
+molecule/*/cache/
+
+#inventory
+inventory.yml

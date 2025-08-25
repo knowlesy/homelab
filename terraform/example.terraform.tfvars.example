@@ -1,0 +1,63 @@
+# Proxmox API Configuration
+proxmox_api_url      = "https://your-proxmox-server:8006/api2/json"
+proxmox_user         = "terraform@pve"  # or "root@pam"
+proxmox_password     = "your-password-here"
+proxmox_tls_insecure = true
+proxmox_debug        = false
+
+# Proxmox Node Configuration
+proxmox_node = "pve"  # Change to your Proxmox node name
+
+# VM ISO Configuration
+vm_iso         = "local:iso/ubuntu-22.04.3-live-server-amd64.iso"  # Change to your ISO filename
+vm_iso_storage = "local"
+
+# VM Disk Storage Configuration
+vm_disk_storage = "local-lvm"  # Change to your preferred storage (e.g., "local-lvm", "ceph", "nfs", etc.)
+
+# Network Configuration
+network_bridge = "vmbr0"      # Your network bridge
+network_model  = "virtio"     # Network model
+network_tag    = null         # VLAN tag (optional)
+
+# Network Settings
+network_gateway = "192.168.1.1"
+dns_servers     = ["8.8.8.8", "8.8.4.4"]
+
+# SSH Configuration
+ssh_user       = "ubuntu"
+ssh_public_key = ""  # Optional: Leave empty if using passwords only
+
+# VM Password Configuration (use passwords.tfvars for actual passwords)
+default_vm_password = ""  # Set in passwords.tfvars
+
+# VM Configuration - Customize as needed
+vm_config = {
+  vm1 = {
+    name        = "homelab-web-01"
+    vmid        = 101
+    cores       = 2
+    memory      = 2048
+    disk_size   = "20G"
+    ip_address  = "192.168.1.101"
+    description = "Web Server VM"
+  }
+  vm2 = {
+    name        = "homelab-db-01"
+    vmid        = 102
+    cores       = 4
+    memory      = 4096
+    disk_size   = "40G"
+    ip_address  = "192.168.1.102"
+    description = "Database Server VM"
+  }
+  vm3 = {
+    name        = "homelab-app-01"
+    vmid        = 103
+    cores       = 2
+    memory      = 2048
+    disk_size   = "30G"
+    ip_address  = "192.168.1.103"
+    description = "Application Server VM"
+  }
+}

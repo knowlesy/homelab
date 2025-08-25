@@ -1,0 +1,9 @@
+---
+- name: Test connectivity to all hosts
+  hosts: all
+  gather_facts: false # Not needed for a simple ping test
+  vars_files:
+    - secrets.yml
+  tasks:
+    - name: Ping hosts
+      ansible.builtin.ping:

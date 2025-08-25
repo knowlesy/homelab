@@ -1,0 +1,62 @@
+---
+- name: System Maintenance and Cleanup
+  hosts: all
+  gather_facts: true
+  become: yes
+  vars_files:
+    - secrets.yml
+  
+  tasks:
+    - name: Clean package cache
+      apt:
+        autoclean: yes
+        autoremove: yes
+      when: ansible_os_family == "Debian"
+    
+    - name: Remove old kernels (keep current + 1 previous)
+      shell: |
+        apt-get autoremove --purge -y
+        apt-get autoclean
+      when: ansible_os_family == "Debian"
+      register: kernel_cleanup
+    
+    - name: Clean log files older than 30 days
+      find:
+        paths: /var/log
+        age: 30d
+        file_type: file
+        patterns: "*.log.*"
+      register: old_logs
+    
+    - name: Remove old log files
+      file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ old_logs.files }}"
+      when: old_logs.files is defined
+    
+    - name: Clean temporary files
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /tmp/*
+        - /var/tmp/*
+      ignore_errors: yes
+    
+    - name: Check disk usage
+      shell: df -h /
+      register: disk_usage
+      changed_when: false
+    
+    - name: Display disk usage
+      debug:
+        msg: "{{ inventory_hostname }} disk usage: {{ disk_usage.stdout_lines[1] }}"
+    
+    - name: Maintenance summary
+      debug:
+        msg: |
+          Maintenance completed for {{ inventory_hostname }}:
+          - Package cleanup: {{ 'Completed' if kernel_cleanup.changed else 'No action needed' }}
+          - Old logs removed: {{ old_logs.files | length if old_logs.files is defined else 0 }} files
+          - Disk usage: {{ disk_usage.stdout_lines[1] }}
