@@ -32,7 +32,7 @@ variable "proxmox_node" {
 variable "vm_iso" {
   description = "The ISO file to use for VM installation (format: storage:iso/filename.iso)"
   type        = string
-  default     = "local:iso/ubuntu-22.04.3-live-server-amd64.iso"
+  default     = "local:iso/ubuntu-24.04.3-live-server-amd64.iso"
 }
 
 variable "vm_iso_storage" {

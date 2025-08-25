@@ -28,14 +28,12 @@ pveum aclmod / -user terraform@pve -role TerraformProv
 Upload Ubuntu ISO to Proxmox local storage:
 
 1. **Download Ubuntu Server ISO:**
-   ```bash
-   wget https://releases.ubuntu.com/22.04/ubuntu-22.04.3-live-server-amd64.iso
-   ```
+
+   - Via the ubuntu website
 
 2. **Upload to Proxmox:**
    - Via Web UI: Go to your node → local (storage) → ISO Images → Upload
-   - Via CLI: Copy the ISO to `/var/lib/vz/template/iso/` on your Proxmox server
-   - Via SCP: `scp ubuntu-22.04.3-live-server-amd64.iso root@proxmox-server:/var/lib/vz/template/iso/`
+
 
 3. **Verify ISO is available:**
    ```bash
@@ -55,7 +53,7 @@ Upload Ubuntu ISO to Proxmox local storage:
    - Update `proxmox_api_url` with your Proxmox server URL
    - Set `proxmox_user` and `proxmox_password`
    - Update `proxmox_node` with your node name
-   - Set `vm_iso` to your ISO filename (e.g., `local:iso/ubuntu-22.04.3-live-server-amd64.iso`)
+   - Set `vm_iso` to your ISO filename (e.g., `local:iso/ubuntu-24.04.3-live-server-amd64.iso`)
    - Configure network settings (bridge, gateway, IPs)
 
 3. Edit `passwords.tfvars` with your VM passwords:

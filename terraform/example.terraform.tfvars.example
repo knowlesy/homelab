@@ -9,7 +9,7 @@ proxmox_debug        = false
 proxmox_node = "pve"  # Change to your Proxmox node name
 
 # VM ISO Configuration
-vm_iso         = "local:iso/ubuntu-22.04.3-live-server-amd64.iso"  # Change to your ISO filename
+vm_iso         = "local:iso/ubuntu-24.04.3-live-server-amd64.iso"  # Change to your ISO filename
 vm_iso_storage = "local"
 
 # VM Disk Storage Configuration

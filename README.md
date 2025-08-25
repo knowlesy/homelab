@@ -58,7 +58,7 @@ ansible-playbook -i inventory/inventory.yml playbooks/system-update.yml --ask-va
 - **Proxmox VE** server with API access
 - **Terraform** >= 1.0
 - **Ansible** >= 2.9
-- **Ubuntu 22.04 Server ISO** uploaded to Proxmox
+- **Ubuntu 24.04.3 Server ISO** uploaded to Proxmox
 
 ## 🌟 Features
 
