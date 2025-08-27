@@ -1,0 +1,56 @@
+---
+# filepath: /Users/peterknowles/Repo/homelab/ansible/playbooks/k3s-prereq.yml
+- name: K3s Prerequisites - Disable UFW
+  hosts: k3s_cluster
+  become: yes
+  gather_facts: yes
+  vars_files:
+    - secrets.yml
+
+  tasks:
+    - name: Check if UFW is installed
+      ansible.builtin.command: which ufw
+      register: ufw_check
+      failed_when: false
+      changed_when: false
+
+    - name: Check UFW status
+      ansible.builtin.command: ufw status
+      register: ufw_status
+      when: ufw_check.rc == 0
+      failed_when: false
+      changed_when: false
+
+    - name: Display current UFW status
+      ansible.builtin.debug:
+        msg: "UFW Status: {{ ufw_status.stdout }}"
+      when: ufw_check.rc == 0
+
+    - name: Disable UFW firewall
+      ansible.builtin.command: ufw disable
+      register: ufw_disable_result
+      when: 
+        - ufw_check.rc == 0
+        - "'Status: active' in ufw_status.stdout"
+      become: yes
+
+    - name: Display UFW disable result
+      ansible.builtin.debug:
+        msg: "UFW disabled successfully"
+      when: ufw_disable_result is defined and ufw_disable_result.changed
+
+    - name: Verify UFW is disabled
+      ansible.builtin.command: ufw status
+      register: ufw_final_status
+      when: ufw_check.rc == 0
+      changed_when: false
+
+    - name: Display final UFW status
+      ansible.builtin.debug:
+        msg: "Final UFW Status: {{ ufw_final_status.stdout }}"
+      when: ufw_check.rc == 0
+
+    - name: UFW not found message
+      ansible.builtin.debug:
+        msg: "UFW is not installed on this system"
+      when: ufw_check.rc != 0

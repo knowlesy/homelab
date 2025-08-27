@@ -1,0 +1,55 @@
+---
+# Create: complete-k3s-cleanup.yml
+- name: Complete K3s Cluster Cleanup
+  hosts: k3s_cluster
+  become: yes
+  vars_files:
+    - secrets.yml
+  tasks:
+    - name: Stop K3s services
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+      failed_when: false
+      loop:
+        - k3s
+        - k3s-agent
+
+    - name: Kill any remaining k3s processes
+      ansible.builtin.command: pkill k3s
+      failed_when: false
+
+    - name: Run k3s uninstall scripts
+      ansible.builtin.command: "{{ item }}"
+      failed_when: false
+      loop:
+        - /usr/local/bin/k3s-uninstall.sh
+        - /usr/local/bin/k3s-agent-uninstall.sh
+
+    - name: Remove all k3s directories and files
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /var/lib/rancher/k3s
+        - /etc/rancher/k3s
+        - /usr/local/bin/k3s
+        - /usr/local/bin/k3s-agent
+        - /etc/systemd/system/k3s.service
+        - /etc/systemd/system/k3s-agent.service
+
+    - name: Reload systemd daemon
+      ansible.builtin.systemd:
+        daemon_reload: yes
+
+    - name: Verify cleanup
+      ansible.builtin.find:
+        paths:
+          - /var/lib/rancher
+          - /etc/rancher
+        file_type: directory
+      register: remaining_files
+
+    - name: Display remaining files
+      ansible.builtin.debug:
+        msg: "Remaining rancher files: {{ remaining_files.files | length }}"
